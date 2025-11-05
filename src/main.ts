@@ -1,32 +1,56 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
+import windowStateKeeper from "electron-window-state";
 
 if (started) {
   app.quit();
 }
 
 const createWindow = () => {
+  const mainWindowState = windowStateKeeper({
+    defaultWidth: 800,
+    defaultHeight: 600,
+  });
+
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
+    autoHideMenuBar: true,
+
+    frame: false, // OSのウィンドウバーとボタンを全て消す
+
+    /* タイトルバーを非表示にしてコンテンツを全面表示し、Windows/Linuxではシステムのウィンドウ操作ボタンをオーバーレイで重ねる設定
+     * titleBarStyle: 'hidden',              // タイトルバー非表示
+     * ...(isMac ? {} : { titleBarOverlay: true }), // Win/Linux: オーバーレイ有効
+     * titleBarOverlay: { color: '#2f3241', symbolColor: '#ffffff', height: 48 }, // タイトルバーの色と高さを設定
+     */
+
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
   });
 
+  // ウィンドウの状態を追跡
+  mainWindowState.manage(mainWindow);
+
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    // 開発中は DevTools を開く
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
-
-  mainWindow.webContents.openDevTools();
 };
 
-app.on("ready", createWindow);
+app.on("ready", () => {
+  Menu.setApplicationMenu(null);
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
