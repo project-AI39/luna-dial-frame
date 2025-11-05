@@ -9,19 +9,24 @@ body {
 /* App header (top bar) */
 .app-header {
   min-height: 24px;
+  padding: 1px;
   display: flex;
   align-items: center;
   background: transparent;
+  -webkit-app-region: drag;
+  user-select: none;
 }
 
 .icon-container {
   display: flex;
   align-items: center;
+  margin-left: auto;
 }
 
 .icon {
   display: inline-block;
   cursor: pointer;
+  -webkit-app-region: no-drag;
 }
 
 .icon circle {
@@ -30,23 +35,26 @@ body {
 }
 
 .icon path {
-  stroke: currentColor;
-  transition: stroke 0.18s ease-in-out;
+  stroke: transparent;
+  transition: stroke 0.18s ease-in-out, fill 0.18s ease-in-out;
+}
+
+.icon-container:hover .icon path {
   stroke: #ffffff;
 }
 
-.icon:nth-child(1):hover circle {
+.icon-close:hover circle {
   fill: #ef4444;
 }
 
-.icon:nth-child(2):hover circle {
+.icon-maximize:hover circle {
   fill: #22c55e;
 }
 
-.icon:nth-child(3):hover circle {
+.icon-minimize:hover circle {
   fill: #fbbf24;
 }
 
-.icon:nth-child(4):hover circle {
+.icon-fullscreen:hover circle {
   fill: #3b82f6;
 }
