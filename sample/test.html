@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デジタル時計</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #000000;
+            color: #FFFFFF;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .clock-section {
+            width: 100%;
+            height: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .history-section {
+            width: 100%;
+            height: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #clock {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: scale(1.0);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .clock-section:hover #clock {
+            transform: scale(1.1);
+        }
+
+        #clock-date,
+        #clock-time {
+            visibility: hidden;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+            color: #FFFFFF;
+            text-shadow:
+                0 0 5px #b0d0ff,
+                0 0 10px #b0d0ff,
+                0 0 20px #0aafe6;
+        }
+
+        #clock-date {
+            font-size: 1.5rem;
+        }
+
+        #clock-time {
+            font-size: 4.5rem;
+        }
+
+        #history-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Share Tech Mono', monospace;
+            gap: 0;
+        }
+
+        .history-item {
+            color: #FFFFFF;
+            text-shadow: 0 0 5px #b0d0ff;
+            font-size: 1.5rem;
+            line-height: 2rem;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        /* 固定の表示上限に対する目標透過率（上が最新） */
+        #history-list .history-item:nth-child(1) {
+            opacity: 1;
+        }
+
+        #history-list .history-item:nth-child(2) {
+            opacity: 0.8;
+        }
+
+        #history-list .history-item:nth-child(3) {
+            opacity: 0.6;
+        }
+
+        #history-list .history-item:nth-child(4) {
+            opacity: 0.4;
+        }
+
+        #history-list .history-item:nth-child(5) {
+            opacity: 0.2;
+        }
+
+
+
+        @media (min-width: 768px) {
+            #clock-date {
+                font-size: 1.875rem;
+            }
+
+            #clock-time {
+                font-size: 6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="clock-area" class="clock-section">
+            <div id="clock">
+                <div id="clock-date"></div>
+                <div id="clock-time"></div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div id="history-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // 初期化
+        if (typeof gsap !== 'undefined' && typeof Flip !== 'undefined') {
+            gsap.registerPlugin(Flip);
+        } else {
+            console.error('GSAP または Flip Plugin が読み込まれていません。');
+        }
+
+
+
+        // ヘルパー: 時刻パーツ取得
+        const getCurrentTimeParts = () => {
+            const now = new Date();
+            const p = n => String(n).padStart(2, '0');
+            return {
+                date: `${now.getFullYear()}/${p(now.getMonth() + 1)}/${p(now.getDate())}`,
+                time: `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`
+            };
+        };
+
+        // ヘルパー: 表示更新
+        const updateClock = () => {
+            const d = document.getElementById('clock-date');
+            const t = document.getElementById('clock-time');
+            const parts = getCurrentTimeParts();
+            d.textContent = parts.date; t.textContent = parts.time;
+            d.style.visibility = t.style.visibility = 'visible';
+        };
+
+        function addHistory() {
+            const list = document.getElementById('history-list');
+            if (!list || typeof Flip === 'undefined') return;
+
+
+            const parts = getCurrentTimeParts();
+
+
+            const newItem = document.createElement('div');
+            newItem.className = 'history-item';
+            newItem.textContent = `${parts.date} ${parts.time}`;
+            newItem.style.opacity = '0';
+
+
+            // 空リストの場合は Flip が onEnter を呼ばないため、直接フェードインする
+            if (list.children.length === 0) {
+                list.prepend(newItem);
+                gsap.to(newItem, {
+                    opacity: 1,
+                    duration: 0.4,
+                    ease: 'power1.in',
+                    overwrite: true,
+                    onComplete: () => {
+                        // inline opacity をクリアして上限を超える要素あれば削除
+                        newItem.style.opacity = '';
+                        while (list.children.length > 5) list.removeChild(list.lastElementChild);
+                    }
+                });
+                return;
+            }
+
+
+            // 非空リスト: 既存の Flip ロジック
+            const preState = Flip.getState(list.children);
+            list.prepend(newItem);
+
+
+            const children = Array.from(list.children);
+            children.forEach(el => el.style.opacity = getComputedStyle(el).opacity);
+            const _targets = [1, 0.8, 0.6, 0.4, 0.2];
+            gsap.to(children, {
+                opacity: (i) => {
+                    if (i === 0) return undefined;
+                    return (i < _targets.length ? _targets[i] : 0);
+                },
+                duration: 1,
+                ease: 'power1.out'
+            });
+
+
+            Flip.from(preState, {
+                duration: 1,
+                ease: 'power2.out',
+                onLeave: elems => gsap.to(Array.from(elems), { opacity: 0, duration: 1, ease: 'power1.out', overwrite: true }),
+                absolute: true,
+                onComplete: () => {
+                    Array.from(list.children).forEach(el => el.style.opacity = '');
+                    while (list.children.length > 5) list.removeChild(list.lastElementChild);
+                }
+            });
+
+            // 新要素のフェードインを並列で実行（Flipアニメーションと同時に開始）
+            gsap.to(newItem, {
+                opacity: 1,
+                duration: 0.4,
+                ease: 'power1.in',
+                overwrite: true
+            });
+        }
+
+
+        updateClock();
+        setInterval(updateClock, 1000);
+        document.getElementById('clock-area').addEventListener('click', addHistory);
+    </script>
+
+</body>
+
+</html>
