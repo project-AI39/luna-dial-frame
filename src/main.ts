@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, Menu, ipcMain } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import windowStateKeeper from "electron-window-state";
@@ -52,6 +52,11 @@ const createWindow = () => {
 app.on("ready", () => {
   Menu.setApplicationMenu(null);
   createWindow();
+});
+
+ipcMain.handle("app-quit", () => {
+  app.quit();
+  return { ok: true };
 });
 
 app.on("window-all-closed", () => {
