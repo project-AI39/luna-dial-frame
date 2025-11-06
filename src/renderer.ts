@@ -164,3 +164,11 @@ function tick(): void {
 // 初期化処理
 initTimezoneOffset();
 scheduleTick();
+
+// 閉じるボタンのイベントリスナーを追加
+const closeButton = document.getElementById("close-button");
+if (closeButton) {
+  closeButton.addEventListener("click", () => {
+    (window as any).appAPI.closeApp();
+  });
+}
