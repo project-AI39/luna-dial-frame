@@ -41,6 +41,16 @@ body {
   margin-left: auto;
 }
 
+.icon-button {
+  all: unset;
+  outline: revert;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: no-drag;
+}
+
 .icon {
   display: inline-block;
   cursor: pointer;
