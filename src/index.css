@@ -110,11 +110,6 @@ body {
   -webkit-app-region: no-drag;
 }
 
-#top-container-button:focus {
-  outline: 3px solid rgba(90, 200, 250, 0.9);
-  outline-offset: -3px;
-}
-
 #bottom-container {
   flex: 40 1 0%;
   display: flex;

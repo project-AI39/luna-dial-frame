@@ -229,3 +229,39 @@ if (fullscreenButton) {
     closeBtn?.classList.remove("hidden");
   }
 });
+
+// Top area click test: log to console when the top button is clicked
+const topButton = document.getElementById("top-container-button");
+if (topButton) {
+  topButton.addEventListener("click", () => {
+    addHistory();
+  });
+}
+
+/**
+ * 履歴に現在時刻を追加（アニメーションなし・シンプル版）
+ */
+function addHistory() {
+  const list = document.getElementById("history-list");
+  if (!list) {
+    console.error("history-list element not found");
+    return;
+  }
+
+  // 現在時刻を取得してフォーマット
+  const now = new Date();
+  const formatted = formatDate(now, currentFormat);
+
+  // 新しい履歴アイテムを作成
+  const newItem = document.createElement("div");
+  newItem.className = "history-item";
+  newItem.textContent = formatted;
+
+  // リストの先頭に追加
+  list.prepend(newItem);
+
+  // 上限を超える要素を削除（最大5件）
+  while (list.children.length > 5) {
+    list.removeChild(list.lastElementChild as ChildNode);
+  }
+}
