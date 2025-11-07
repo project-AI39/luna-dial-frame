@@ -118,8 +118,26 @@ body {
 }
 
 #history-list {
+  width: 100%;
   height: 100%;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* When animating via JS (GSAP), disable CSS transitions on items to avoid conflicts */
+#history-list.animating .history-item {
+  transition: none !important;
+  /* Prevent hover interactions during JS-driven animation */
+  pointer-events: none;
+}
+
+/* Ensure hover-state rules don't override animation visuals while animating */
+#history-list.animating .history-item:hover {
+  transform: none !important;
+  color: #daf6ff !important;
+  text-shadow: 0px 0px 20px #0aafe6 !important;
+  /* Let inline opacity set by GSAP take effect, so don't force opacity here */
+  opacity: inherit !important;
 }
 
 #clock-date,
@@ -139,6 +157,15 @@ body {
   text-shadow: 0px 0px 20px #12ff6d;
 }
 
+/* When the top button has .animating, suppress its hover visual changes so
+   GSAP-driven animations don't get visually overridden. */
+#top-container-button.animating:hover #clock #clock-time,
+#top-container-button.animating:hover #clock #clock-date {
+  transform: none !important;
+  color: #daf6ff !important;
+  text-shadow: 0px 0px 20px #0aafe6 !important;
+}
+
 #clock-date {
   font-size: max(1.4rem, 3vmin);
 }
@@ -149,7 +176,7 @@ body {
 
 .history-item {
   font-size: max(0.65rem, 3.0vmin);
-  line-height: 2;
+  line-height: 1.7;
   color: #daf6ff;
   text-shadow: 0px 0px 20px #0aafe6;
   text-align: center;

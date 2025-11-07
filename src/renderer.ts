@@ -241,13 +241,20 @@ if (topButton) {
   });
 }
 
-
 function addHistory() {
   const list = document.getElementById("history-list");
   if (!list) {
     console.error("history-list element not found");
     return;
   }
+
+  const topBtn = document.getElementById(
+    "top-container-button"
+  ) as HTMLButtonElement | null;
+
+  // 1) First: 現在の要素位置を取得
+  const prevChildren = Array.from(list.children) as HTMLElement[];
+  const firstRects = prevChildren.map((el) => el.getBoundingClientRect());
 
   // 現在時刻を取得してフォーマット
   const now = new Date();
@@ -260,26 +267,86 @@ function addHistory() {
   newItem.style.opacity = "0";
   newItem.setAttribute("data-ts", now.toISOString());
 
-  // 先頭に追加
+  // 2) DOM変更: 先頭に追加
   list.prepend(newItem);
 
-  // 処理中はボタンを無効化して多重クリックを防ぐ
-  const topBtn = document.getElementById(
-    "top-container-button"
-  ) as HTMLButtonElement | null;
+  // 3) Last: 変更後の位置を取得
+  const allChildren = Array.from(list.children) as HTMLElement[];
+  const lastRects = allChildren.map((el) => el.getBoundingClientRect());
+
+  // 4) Invert: 差分を計算して逆向き transform と初期 opacity を gsap.set でセット
+  //    既存要素は以前のインデックスに対応する opacity から、
+  //    新しいインデックスに対応する opacity へアニメーションさせる。
+  const opacityForIndex = (idx: number) => {
+    if (idx >= 5) return 0;
+    // 0 -> 1.0, 1 -> 0.8, 2 -> 0.6, ...
+    return Math.max(0, Number((1 - idx * 0.2).toFixed(2)));
+  };
+
+  allChildren.forEach((el, i) => {
+    const prevIndex = prevChildren.indexOf(el as HTMLElement);
+    if (prevIndex >= 0) {
+      const dx = firstRects[prevIndex].left - lastRects[i].left;
+      const dy = firstRects[prevIndex].top - lastRects[i].top;
+      // prevOpacity は以前の位置に基づく値
+      const prevOpacity = opacityForIndex(prevIndex);
+      gsap.set(el, { x: dx, y: dy, opacity: prevOpacity });
+    } else {
+      // new item: start slightly raised and fully transparent
+      gsap.set(el, { y: -6, opacity: 0 });
+    }
+    // パフォーマンスヒント
+    (el as HTMLElement).style.willChange = "transform, opacity";
+  });
+
+  // Mark animating state on list to temporarily disable CSS transitions that may conflict
+  list.classList.add("animating");
+  // Also mark the top button so its hover styles can be disabled via CSS
+  if (topBtn) topBtn.classList.add("animating");
+
+  // レイアウト反映
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  document.body.offsetHeight;
+
+  // disable button during animation
   if (topBtn) topBtn.disabled = true;
 
-  // 新要素をフェードイン（Stage 1）
-  gsap.to(newItem, {
-    opacity: 1,
-    duration: 1,
-    ease: "power1.in",
-    overwrite: true,
-    onComplete: () => {
-      // clean inline style
-      newItem.style.opacity = "";
+  // 5) Play: timeline で同時アニメーション（transform と opacity を個別ターゲットへ）
+  const MAX = 5;
 
+  const tl = gsap.timeline({
+    onComplete: () => {
+      // 6) Cleanup: inline style をクリアして CSS nth-child の状態に戻す
+      Array.from(list.children).forEach((el) => {
+        (el as HTMLElement).style.transform = "";
+        (el as HTMLElement).style.opacity = "";
+        (el as HTMLElement).style.willChange = "";
+      });
+      // remove animating class
+      list.classList.remove("animating");
+      if (topBtn) topBtn.classList.remove("animating");
+      // remove overflow items that remain
+      while (list.children.length > MAX) {
+        list.removeChild(list.lastElementChild as ChildNode);
+      }
       if (topBtn) topBtn.disabled = false;
     },
   });
+
+  // allChildren に対して、各要素の新しいインデックスに応じた opacity へアニメーション
+  tl.to(
+    allChildren,
+    {
+      x: 0,
+      y: 0,
+      duration: 0.66,
+      ease: "power1.out",
+      overwrite: true,
+      opacity: (i: number) => opacityForIndex(i),
+    },
+    0
+  );
+
+  // 余剰要素は onComplete のクリーニングループで削除されるため、ここでは個別に削除せず
+  // 必要ならタイムライン中にコールバックで削除を入れても良い。
 }
