@@ -1,6 +1,9 @@
 // 時刻フォーマットの種類
 type DateFormat = "slash" | "japanese" | "iso";
 
+// GSAP import
+import gsap from "gsap";
+
 // 現在選択されているフォーマット(変数で切り替え可能)
 let currentFormat: DateFormat = "slash";
 
@@ -238,9 +241,7 @@ if (topButton) {
   });
 }
 
-/**
- * 履歴に現在時刻を追加（アニメーションなし・シンプル版）
- */
+
 function addHistory() {
   const list = document.getElementById("history-list");
   if (!list) {
@@ -252,16 +253,33 @@ function addHistory() {
   const now = new Date();
   const formatted = formatDate(now, currentFormat);
 
-  // 新しい履歴アイテムを作成
+  // 新しい履歴アイテムを作成（初期は透明）
   const newItem = document.createElement("div");
   newItem.className = "history-item";
   newItem.textContent = formatted;
+  newItem.style.opacity = "0";
+  newItem.setAttribute("data-ts", now.toISOString());
 
-  // リストの先頭に追加
+  // 先頭に追加
   list.prepend(newItem);
 
-  // 上限を超える要素を削除（最大5件）
-  while (list.children.length > 5) {
-    list.removeChild(list.lastElementChild as ChildNode);
-  }
+  // 処理中はボタンを無効化して多重クリックを防ぐ
+  const topBtn = document.getElementById(
+    "top-container-button"
+  ) as HTMLButtonElement | null;
+  if (topBtn) topBtn.disabled = true;
+
+  // 新要素をフェードイン（Stage 1）
+  gsap.to(newItem, {
+    opacity: 1,
+    duration: 1,
+    ease: "power1.in",
+    overwrite: true,
+    onComplete: () => {
+      // clean inline style
+      newItem.style.opacity = "";
+
+      if (topBtn) topBtn.disabled = false;
+    },
+  });
 }
