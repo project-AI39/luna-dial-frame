@@ -87,6 +87,11 @@ body {
   fill: #3b82f6;
 }
 
+/* Hidden button style */
+.icon-button.hidden {
+  display: none;
+}
+
 /* App content area */
 #app {
   flex: auto;

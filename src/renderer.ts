@@ -211,3 +211,21 @@ if (fullscreenButton) {
     }
   });
 }
+
+// フルスクリーン状態の変更を監視してボタンの表示/非表示を切り替え
+(window as any).appAPI.onFullScreenChange((isFullScreen: boolean) => {
+  // フルスクリーン時は最小化、最大化、閉じるボタンを非表示
+  const minimizeBtn = document.getElementById("minimize-button");
+  const maximizeBtn = document.getElementById("toggle-maximize-button");
+  const closeBtn = document.getElementById("close-button");
+
+  if (isFullScreen) {
+    minimizeBtn?.classList.add("hidden");
+    maximizeBtn?.classList.add("hidden");
+    closeBtn?.classList.add("hidden");
+  } else {
+    minimizeBtn?.classList.remove("hidden");
+    maximizeBtn?.classList.remove("hidden");
+    closeBtn?.classList.remove("hidden");
+  }
+});

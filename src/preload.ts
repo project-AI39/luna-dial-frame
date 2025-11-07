@@ -13,4 +13,11 @@ contextBridge.exposeInMainWorld("appAPI", {
 
   // フルスクリーンの切替
   toggleFullScreen: () => ipcRenderer.invoke("app-toggle-fullscreen"),
+
+  // フルスクリーン状態の変更を監視
+  onFullScreenChange: (callback: (isFullScreen: boolean) => void) => {
+    ipcRenderer.on("fullscreen-changed", (_event, isFullScreen: boolean) => {
+      callback(isFullScreen);
+    });
+  },
 });

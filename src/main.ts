@@ -40,6 +40,15 @@ const createWindow = () => {
   // ウィンドウの状態を追跡
   mainWindowState.manage(mainWindow);
 
+  // フルスクリーン状態の変更を監視
+  mainWindow.on("enter-full-screen", () => {
+    mainWindow.webContents.send("fullscreen-changed", true);
+  });
+
+  mainWindow.on("leave-full-screen", () => {
+    mainWindow.webContents.send("fullscreen-changed", false);
+  });
+
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     // 開発中は DevTools を開く
