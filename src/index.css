@@ -99,13 +99,20 @@ body {
   flex-direction: column;
 }
 
-#top-container {
-  flex: 60 1 0%;
+#top-container-button {
+  all: unset;
   display: flex;
+  flex: 60 1 0%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+#top-container-button:focus {
+  outline: 3px solid rgba(90, 200, 250, 0.9);
+  outline-offset: -3px;
 }
 
 #bottom-container {
@@ -125,8 +132,8 @@ body {
   transition: 0.2s ease-in-out;
 }
 
-#top-container:hover #clock #clock-date,
-#top-container:hover #clock #clock-time {
+#top-container-button:hover #clock #clock-date,
+#top-container-button:hover #clock #clock-time {
   transform: scale(1.1);
   color: #5eff9c;
   text-shadow: 0px 0px 20px #12ff6d;
@@ -180,7 +187,7 @@ body {
 }
 
 * {
--webkit-user-select: none;
+  -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
