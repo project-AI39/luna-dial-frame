@@ -172,3 +172,42 @@ if (closeButton) {
     (window as any).appAPI.closeApp();
   });
 }
+
+// 最小化ボタン
+const minimizeButton = document.getElementById("minimize-button");
+if (minimizeButton) {
+  minimizeButton.addEventListener("click", () => {
+    (window as any).appAPI.minimize();
+  });
+}
+
+// 最大化ボタン（最大化されていれば最大化解除）
+const maximizeButton = document.getElementById("toggle-maximize-button");
+if (maximizeButton) {
+  maximizeButton.addEventListener("click", async () => {
+    try {
+      const res = await (window as any).appAPI.toggleMaximize();
+      if (res && typeof res.maximized !== "undefined") {
+        // 状態をボタンに反映（アクセシビリティ用途）
+        maximizeButton.setAttribute("aria-pressed", String(res.maximized));
+      }
+    } catch (e) {
+      console.error("Failed to maximize/unmaximize:", e);
+    }
+  });
+}
+
+// フルスクリーン切替ボタン
+const fullscreenButton = document.getElementById("toggle-fullscreen-button");
+if (fullscreenButton) {
+  fullscreenButton.addEventListener("click", async () => {
+    try {
+      const res = await (window as any).appAPI.toggleFullScreen();
+      if (res && typeof res.isFullScreen !== "undefined") {
+        fullscreenButton.setAttribute("aria-pressed", String(res.isFullScreen));
+      }
+    } catch (e) {
+      console.error("Failed to toggle full screen:", e);
+    }
+  });
+}

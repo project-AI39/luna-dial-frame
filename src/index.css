@@ -75,7 +75,7 @@ body {
   fill: #ef4444;
 }
 
-.icon-maximize:hover circle {
+.icon-toggle-maximize:hover circle {
   fill: #22c55e;
 }
 
@@ -83,7 +83,7 @@ body {
   fill: #fbbf24;
 }
 
-.icon-fullscreen:hover circle {
+.icon-toggle-fullscreen:hover circle {
   fill: #3b82f6;
 }
 

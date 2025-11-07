@@ -61,6 +61,39 @@ ipcMain.handle("app-quit", () => {
   return { ok: true };
 });
 
+// レンダラーからウィンドウ操作を受け付けるハンドラ
+ipcMain.handle("app-minimize", () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win) {
+    win.minimize();
+    return { ok: true };
+  }
+  return { ok: false, error: "no-window" };
+});
+
+ipcMain.handle("app-toggle-maximize", () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win) {
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+    return { ok: true, maximized: win.isMaximized() };
+  }
+  return { ok: false, error: "no-window" };
+});
+
+ipcMain.handle("app-toggle-fullscreen", () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (win) {
+    const isFull = win.isFullScreen();
+    win.setFullScreen(!isFull);
+    return { ok: true, isFullScreen: !isFull };
+  }
+  return { ok: false, error: "no-window" };
+});
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
