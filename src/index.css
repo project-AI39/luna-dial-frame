@@ -67,22 +67,27 @@ body {
   transition: stroke 0.18s ease-in-out;
 }
 
+.icon-container:focus-within .icon path,
 .icon-container:hover .icon path {
   stroke: #ffffff;
 }
 
+.icon-button:focus-visible .icon-close circle,
 .icon-close:hover circle {
   fill: #ef4444;
 }
 
+.icon-button:focus-visible .icon-toggle-maximize circle,
 .icon-toggle-maximize:hover circle {
   fill: #22c55e;
 }
 
+.icon-button:focus-visible .icon-minimize circle,
 .icon-minimize:hover circle {
   fill: #fbbf24;
 }
 
+.icon-button:focus-visible .icon-toggle-fullscreen circle,
 .icon-toggle-fullscreen:hover circle {
   fill: #3b82f6;
 }
