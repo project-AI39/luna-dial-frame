@@ -242,6 +242,26 @@ if (topButton) {
   });
 }
 
+// Event delegation for history items: copy clicked item's text to clipboard
+const historyListEl = document.getElementById("history-list");
+if (historyListEl) {
+  historyListEl.addEventListener("click", (ev) => {
+    const btn = (ev.target as HTMLElement).closest(
+      ".history-item"
+    ) as HTMLButtonElement | null;
+    if (!btn) return;
+    const text = btn.textContent ?? "";
+    (window as any).appAPI
+      .writeClipboard(text)
+      .then(() => {
+        console.log("Copied history item to clipboard:", text);
+      })
+      .catch((e: Error) => {
+        console.error("Failed to copy history item:", e);
+      });
+  });
+}
+
 function addHistory() {
   const list = document.getElementById("history-list");
   if (!list) {
@@ -271,8 +291,9 @@ function addHistory() {
       console.error("Failed to copy to clipboard:", err);
     });
 
-  // 新しい履歴アイテムを作成（初期は透明）
-  const newItem = document.createElement("div");
+  // 新しい履歴アイテムを作成(button, 初期は透明)
+  const newItem = document.createElement("button");
+  newItem.setAttribute("type", "button");
   newItem.className = "history-item";
   newItem.textContent = formatted;
   newItem.style.opacity = "0";

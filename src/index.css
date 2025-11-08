@@ -176,7 +176,15 @@ body {
   font-size: max(3.8rem, 12vmin);
 }
 
+/* Make history items real buttons but keep visual style */
 .history-item {
+  all: unset;
+  /* remove button UA styles */
+  outline: revert;
+  /* restore keyboard focus ring */
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
   font-size: max(0.65rem, 3.0vmin);
   line-height: 1.7;
   color: #daf6ff;
