@@ -20,4 +20,8 @@ contextBridge.exposeInMainWorld("appAPI", {
       callback(isFullScreen);
     });
   },
+
+  // クリップボードにテキストを書き込む
+  writeClipboard: (text: string) =>
+    ipcRenderer.invoke("app-write-clipboard", text),
 });

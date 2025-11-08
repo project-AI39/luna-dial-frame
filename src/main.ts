@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, ipcMain } from "electron";
+import { app, BrowserWindow, Menu, ipcMain, clipboard } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import windowStateKeeper from "electron-window-state";
@@ -101,6 +101,11 @@ ipcMain.handle("app-toggle-fullscreen", () => {
     return { ok: true, isFullScreen: !isFull };
   }
   return { ok: false, error: "no-window" };
+});
+
+ipcMain.handle("app-write-clipboard", (_event, text: string) => {
+  clipboard.writeText(text);
+  return { ok: true };
 });
 
 app.on("window-all-closed", () => {

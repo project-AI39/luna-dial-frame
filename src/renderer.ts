@@ -5,7 +5,8 @@ type DateFormat = "slash" | "japanese" | "iso";
 import gsap from "gsap";
 
 // 現在選択されているフォーマット(変数で切り替え可能)
-let currentFormat: DateFormat = "slash";
+let clockFormat: DateFormat = "slash";
+let historyFormat: DateFormat = "japanese";
 
 // 前回の tick の秒数（Unix秒）を保存する変数
 let lastTickSeconds: number | null = null;
@@ -117,8 +118,8 @@ function updateClock(date: Date): void {
     }
   }
 
-  const formatted = formatDate(date, currentFormat);
-  const [datePart, timePart] = splitDateTime(formatted, currentFormat);
+  const formatted = formatDate(date, clockFormat);
+  const [datePart, timePart] = splitDateTime(formatted, clockFormat);
 
   // 日付部分は変わった時のみ更新（1日に1回のみ）
   if (lastDatePart !== datePart) {
@@ -258,7 +259,17 @@ function addHistory() {
 
   // 現在時刻を取得してフォーマット
   const now = new Date();
-  const formatted = formatDate(now, currentFormat);
+  const formatted = formatDate(now, historyFormat);
+
+  // クリップボードにコピー
+  (window as any).appAPI
+    .writeClipboard(formatted)
+    .then(() => {
+      console.log("Copied to clipboard:", formatted);
+    })
+    .catch((err: Error) => {
+      console.error("Failed to copy to clipboard:", err);
+    });
 
   // 新しい履歴アイテムを作成（初期は透明）
   const newItem = document.createElement("div");
