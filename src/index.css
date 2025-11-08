@@ -67,7 +67,7 @@ body {
   transition: stroke 0.18s ease-in-out;
 }
 
-.icon-button:focus-visible .icon path,
+.icon-container:has(.icon-button:focus-visible) .icon path,
 .icon-container:hover .icon path {
   stroke: #ffffff;
 }
