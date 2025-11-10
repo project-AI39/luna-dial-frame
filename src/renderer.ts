@@ -21,6 +21,52 @@ let clockTimeElement: HTMLElement | null = null;
 let cachedTimezoneOffset = "";
 
 /**
+ * トースト通知を表示する
+ * @param message 表示するメッセージ
+ * @param type 通知の種類 ('success' | 'error')
+ * @param duration 表示時間（ミリ秒）
+ */
+function showToast(
+  message: string,
+  type: "success" | "error" = "success",
+  duration = 2000
+): void {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  // トースト要素を作成
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  toast.style.opacity = "0";
+  toast.style.transform = "translateX(100px)";
+
+  container.appendChild(toast);
+
+  // GSAPでアニメーション: フェードイン + スライドイン
+  gsap.to(toast, {
+    opacity: 1,
+    x: 0,
+    duration: 0.4,
+    ease: "power2.out",
+    onComplete: () => {
+      // 指定時間後にフェードアウト
+      setTimeout(() => {
+        gsap.to(toast, {
+          opacity: 0,
+          x: 100,
+          duration: 0.3,
+          ease: "power2.in",
+          onComplete: () => {
+            container.removeChild(toast);
+          },
+        });
+      }, duration);
+    },
+  });
+}
+
+/**
  * 数値を2桁の文字列に変換するヘルパー関数
  * @param num 変換する数値
  * @returns 2桁の文字列（例: 1 -> "01", 12 -> "12"）
@@ -260,10 +306,12 @@ if (historyListEl) {
     (window as any).appAPI
       .writeClipboard(text)
       .then(() => {
-        console.log("Copied history item to clipboard:", text);
+        // 成功時: トースト通知
+        showToast("Copied!", "success", 1500);
       })
       .catch((e: Error) => {
         console.error("Failed to copy history item:", e);
+        showToast("Copy failed", "error", 2000);
       });
   });
 }
@@ -294,11 +342,13 @@ function addHistory() {
   // クリップボードにコピー
   (window as any).appAPI
     .writeClipboard(formatted)
-    // .then(() => {
-    //   console.log("Copied to clipboard:", formatted);
-    // })
+    .then(() => {
+      // 成功時: トースト通知
+      showToast("Copied!", "success", 1500);
+    })
     .catch((err: Error) => {
       console.error("Failed to copy to clipboard:", err);
+      showToast("Copy failed", "error", 2000);
     });
 
   // 新しい履歴アイテムを作成(button, 初期は透明)
