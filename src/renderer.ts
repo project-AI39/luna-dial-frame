@@ -5,7 +5,7 @@ type DateFormat = "custom" | "slash" | "japanese" | "iso";
 import gsap from "gsap";
 
 // 現在選択されているフォーマット(変数で切り替え可能)
-let Format: DateFormat = "custom";
+const Format: DateFormat = "custom";
 
 // 前回の tick の秒数（Unix秒）を保存する変数
 let lastTickSeconds: number | null = null;
@@ -18,7 +18,7 @@ let clockDateElement: HTMLElement | null = null;
 let clockTimeElement: HTMLElement | null = null;
 
 // タイムゾーンオフセット文字列のキャッシュ（ISO形式用）
-let cachedTimezoneOffset: string = "";
+let cachedTimezoneOffset = "";
 
 /**
  * 数値を2桁の文字列に変換するヘルパー関数
@@ -67,7 +67,7 @@ function formatDate(date: Date, format: DateFormat): [string, string, string] {
         `${year}年${month}月${day}日${hours}時${minutes}分${seconds}秒`,
       ];
 
-    case "slash":
+    case "slash": {
       // 時計用日付: Thu, 2025/09/10
       // 時計用時刻: 15:17:25
       // 履歴用: Thu, 2025/09/10 15:17:25
@@ -78,8 +78,9 @@ function formatDate(date: Date, format: DateFormat): [string, string, string] {
         `${hours}:${minutes}:${seconds}`,
         `${dayNameEn}, ${year}/${month}/${day} ${hours}:${minutes}:${seconds}`,
       ];
+    }
 
-    case "japanese":
+    case "japanese": {
       // 時計用日付: 2025年09月10日（木）
       // 時計用時刻: 15時17分25秒
       // 履歴用: 2025年09月10日（木）15時17分25秒
@@ -93,15 +94,18 @@ function formatDate(date: Date, format: DateFormat): [string, string, string] {
         `${hours}時${minutes}分${seconds}秒`,
         `${year}年${month}月${day}日（${dayName}）${hours}時${minutes}分${seconds}秒`,
       ];
+    }
 
-    case "iso":
+    case "iso": {
       // ISO形式は全体で1つの文字列として扱う
       const isoString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${cachedTimezoneOffset}`;
       return ["", isoString, isoString];
+    }
 
-    default:
+    default: {
       const defaultString = date.toLocaleString();
       return ["", defaultString, defaultString];
+    }
   }
 }
 
