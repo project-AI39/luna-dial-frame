@@ -43,12 +43,12 @@ function initTimezoneOffset(): void {
 }
 
 /**
- * 日付を指定されたフォーマットで日付部分と時刻部分に分けて配列で返す
+ * 日付を指定されたフォーマットで日付部分と時刻部分と曜日に分けて配列で返す
  * @param date 変換する日付
  * @param format フォーマット種類
- * @returns [日付部分, 時刻部分]
+ * @returns [日付部分, 時刻部分, 曜日部分]
  */
-function formatDate(date: Date, format: DateFormat): [string, string] {
+function formatDate(date: Date, format: DateFormat): [string, string, string] {
   const year = date.getFullYear();
   const month = pad2(date.getMonth() + 1);
   const day = pad2(date.getDate());
@@ -56,16 +56,26 @@ function formatDate(date: Date, format: DateFormat): [string, string] {
   const minutes = pad2(date.getMinutes());
   const seconds = pad2(date.getSeconds());
 
+  // 曜日を取得
+  const dayOfWeek = date.getDay(); // 0(日曜)~6(土曜)
+  const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
+  const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
   switch (format) {
     case "slash":
-      // 日付: 2025/09/10, 時刻: 15:17:25
-      return [`${year}/${month}/${day}`, `${hours}:${minutes}:${seconds}`];
+      // 日付: 2025/09/10, 時刻: 15:17:25, 曜日: Mon
+      return [
+        `${year}/${month}/${day}`,
+        `${hours}:${minutes}:${seconds}`,
+        dayNamesEn[dayOfWeek],
+      ];
 
     case "japanese":
-      // 日付: 2025年09月10日, 時刻: 15時17分25秒
+      // 日付: 2025年09月10日, 時刻: 15時17分25秒, 曜日: 月
       return [
         `${year}年${month}月${day}日`,
         `${hours}時${minutes}分${seconds}秒`,
+        dayNamesJa[dayOfWeek],
       ];
 
     case "iso":
@@ -74,10 +84,11 @@ function formatDate(date: Date, format: DateFormat): [string, string] {
       return [
         "",
         `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${cachedTimezoneOffset}`,
+        dayNamesEn[dayOfWeek],
       ];
 
     default:
-      return ["", date.toLocaleString()];
+      return ["", date.toLocaleString(), ""];
   }
 }
 
@@ -97,7 +108,7 @@ function updateClock(date: Date): void {
     }
   }
 
-  const [datePart, timePart] = formatDate(date, clockFormat);
+  const [datePart, timePart /* dayOfWeek */] = formatDate(date, clockFormat);
 
   // 日付部分は変わった時のみ更新(1日に1回のみ)
   if (lastDatePart !== datePart) {
@@ -257,8 +268,8 @@ function addHistory() {
 
   // 現在時刻を取得してフォーマット
   const now = new Date();
-  const [datePart, timePart] = formatDate(now, historyFormat);
-  const formatted = datePart + timePart; // スペースなしで結合
+  const [datePart, timePart /* dayOfWeek */] = formatDate(now, historyFormat);
+  const formatted = datePart + timePart; // スペースなしで結合(曜日は現時点では使用しない)
 
   // クリップボードにコピー
   (window as any).appAPI
