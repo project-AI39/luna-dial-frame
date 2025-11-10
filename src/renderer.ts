@@ -43,12 +43,12 @@ function initTimezoneOffset(): void {
 }
 
 /**
- * 日付を指定されたフォーマットで文字列に変換
+ * 日付を指定されたフォーマットで日付部分と時刻部分に分けて配列で返す
  * @param date 変換する日付
  * @param format フォーマット種類
- * @returns フォーマット済み文字列
+ * @returns [日付部分, 時刻部分]
  */
-function formatDate(date: Date, format: DateFormat): string {
+function formatDate(date: Date, format: DateFormat): [string, string] {
   const year = date.getFullYear();
   const month = pad2(date.getMonth() + 1);
   const day = pad2(date.getDate());
@@ -58,47 +58,26 @@ function formatDate(date: Date, format: DateFormat): string {
 
   switch (format) {
     case "slash":
-      // 2025/09/10 15:17:25
-      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+      // 日付: 2025/09/10, 時刻: 15:17:25
+      return [`${year}/${month}/${day}`, `${hours}:${minutes}:${seconds}`];
 
     case "japanese":
-      // 2025年09月10日 15時17分25秒
-      return `${year}年${month}月${day}日 ${hours}時${minutes}分${seconds}秒`;
+      // 日付: 2025年09月10日, 時刻: 15時17分25秒
+      return [
+        `${year}年${month}月${day}日`,
+        `${hours}時${minutes}分${seconds}秒`,
+      ];
 
     case "iso":
-      // 2025-09-10T15:17:25+09:00
-      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${cachedTimezoneOffset}`;
+      // ISO形式は全体で1つの文字列として扱う
+      // 日付部分は空、時刻部分に全体を入れる
+      return [
+        "",
+        `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${cachedTimezoneOffset}`,
+      ];
 
     default:
-      return date.toLocaleString();
-  }
-}
-
-/**
- * フォーマット済み文字列を日付部分と時刻部分に分割
- * @param formatted フォーマット済み文字列
- * @param format フォーマット種類
- * @returns [日付部分, 時刻部分]
- */
-function splitDateTime(
-  formatted: string,
-  format: DateFormat
-): [string, string] {
-  switch (format) {
-    case "slash":
-    case "japanese":
-      // 2025/09/10 15:17:25 -> 日付と時刻で分割
-      // 2025年09月10日 15時17分25秒 -> 日付と時刻で分割
-      const [datePart, timePart] = formatted.split(" ");
-      return [datePart, timePart];
-
-    case "iso":
-      // 2025-09-10T15:17:25+09:00
-      return ["", formatted];
-
-    default:
-      // 網羅性チェック: 新しいフォーマットが追加されたらコンパイルエラー
-      throw new Error(`Unhandled case: ${format}`);
+      return ["", date.toLocaleString()];
   }
 }
 
@@ -118,10 +97,9 @@ function updateClock(date: Date): void {
     }
   }
 
-  const formatted = formatDate(date, clockFormat);
-  const [datePart, timePart] = splitDateTime(formatted, clockFormat);
+  const [datePart, timePart] = formatDate(date, clockFormat);
 
-  // 日付部分は変わった時のみ更新（1日に1回のみ）
+  // 日付部分は変わった時のみ更新(1日に1回のみ)
   if (lastDatePart !== datePart) {
     clockDateElement.textContent = datePart;
     lastDatePart = datePart;
@@ -279,7 +257,8 @@ function addHistory() {
 
   // 現在時刻を取得してフォーマット
   const now = new Date();
-  const formatted = formatDate(now, historyFormat);
+  const [datePart, timePart] = formatDate(now, historyFormat);
+  const formatted = datePart + timePart; // スペースなしで結合
 
   // クリップボードにコピー
   (window as any).appAPI
