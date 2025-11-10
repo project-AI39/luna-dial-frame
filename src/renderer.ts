@@ -1,12 +1,11 @@
 // 時刻フォーマットの種類
-type DateFormat = "slash" | "japanese" | "iso";
+type DateFormat = "custom" | "slash" | "japanese" | "iso";
 
 // GSAP import
 import gsap from "gsap";
 
 // 現在選択されているフォーマット(変数で切り替え可能)
-let clockFormat: DateFormat = "slash";
-let historyFormat: DateFormat = "japanese";
+let Format: DateFormat = "custom";
 
 // 前回の tick の秒数（Unix秒）を保存する変数
 let lastTickSeconds: number | null = null;
@@ -43,10 +42,10 @@ function initTimezoneOffset(): void {
 }
 
 /**
- * 日付を指定されたフォーマットで日付部分と時刻部分と曜日に分けて配列で返す
+ * 日付を指定されたフォーマットで用途別に文字列化して返す
  * @param date 変換する日付
  * @param format フォーマット種類
- * @returns [日付部分, 時刻部分, 曜日部分]
+ * @returns [時計用日付, 時計用時刻, 履歴用日付+時刻]
  */
 function formatDate(date: Date, format: DateFormat): [string, string, string] {
   const year = date.getFullYear();
@@ -55,40 +54,54 @@ function formatDate(date: Date, format: DateFormat): [string, string, string] {
   const hours = pad2(date.getHours());
   const minutes = pad2(date.getMinutes());
   const seconds = pad2(date.getSeconds());
-
-  // 曜日を取得
   const dayOfWeek = date.getDay(); // 0(日曜)~6(土曜)
-  const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
-  const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   switch (format) {
-    case "slash":
-      // 日付: 2025/09/10, 時刻: 15:17:25, 曜日: Mon
+    case "custom":
+      // 時計用日付: 2025/09/10
+      // 時計用時刻: 15:17:25
+      // 履歴用: 2025年09月10日15時17分25秒
       return [
         `${year}/${month}/${day}`,
         `${hours}:${minutes}:${seconds}`,
-        dayNamesEn[dayOfWeek],
+        `${year}年${month}月${day}日${hours}時${minutes}分${seconds}秒`,
+      ];
+
+    case "slash":
+      // 時計用日付: Thu, 2025/09/10
+      // 時計用時刻: 15:17:25
+      // 履歴用: Thu, 2025/09/10 15:17:25
+      const dayNamesEnShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const dayNameEn = dayNamesEnShort[dayOfWeek];
+      return [
+        `${dayNameEn}, ${year}/${month}/${day}`,
+        `${hours}:${minutes}:${seconds}`,
+        `${dayNameEn}, ${year}/${month}/${day} ${hours}:${minutes}:${seconds}`,
       ];
 
     case "japanese":
-      // 日付: 2025年09月10日, 時刻: 15時17分25秒, 曜日: 月
+      // 時計用日付: 2025年09月10日（木）
+      // 時計用時刻: 15時17分25秒
+      // 履歴用: 2025年09月10日（木）15時17分25秒
+
+      const dayNamesJaShort = ["日", "月", "火", "水", "木", "金", "土"];
+      // const dayNamesJaLong = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
+      const dayName = dayNamesJaShort[dayOfWeek];
+
       return [
-        `${year}年${month}月${day}日`,
+        `${year}年${month}月${day}日（${dayName}）`,
         `${hours}時${minutes}分${seconds}秒`,
-        dayNamesJa[dayOfWeek],
+        `${year}年${month}月${day}日（${dayName}）${hours}時${minutes}分${seconds}秒`,
       ];
 
     case "iso":
       // ISO形式は全体で1つの文字列として扱う
-      // 日付部分は空、時刻部分に全体を入れる
-      return [
-        "",
-        `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${cachedTimezoneOffset}`,
-        dayNamesEn[dayOfWeek],
-      ];
+      const isoString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${cachedTimezoneOffset}`;
+      return ["", isoString, isoString];
 
     default:
-      return ["", date.toLocaleString(), ""];
+      const defaultString = date.toLocaleString();
+      return ["", defaultString, defaultString];
   }
 }
 
@@ -108,16 +121,16 @@ function updateClock(date: Date): void {
     }
   }
 
-  const [datePart, timePart /* dayOfWeek */] = formatDate(date, clockFormat);
+  const [clockDate, clockTime /* historyDateTime */] = formatDate(date, Format);
 
   // 日付部分は変わった時のみ更新(1日に1回のみ)
-  if (lastDatePart !== datePart) {
-    clockDateElement.textContent = datePart;
-    lastDatePart = datePart;
+  if (lastDatePart !== clockDate) {
+    clockDateElement.textContent = clockDate;
+    lastDatePart = clockDate;
   }
 
   // 時刻部分は毎回更新
-  clockTimeElement.textContent = timePart;
+  clockTimeElement.textContent = clockTime;
 }
 
 /**
@@ -268,15 +281,18 @@ function addHistory() {
 
   // 現在時刻を取得してフォーマット
   const now = new Date();
-  const [datePart, timePart /* dayOfWeek */] = formatDate(now, historyFormat);
-  const formatted = datePart + timePart; // スペースなしで結合(曜日は現時点では使用しない)
+  const [, , /* clockDate */ /* clockTime */ historyDateTime] = formatDate(
+    now,
+    Format
+  );
+  const formatted = historyDateTime;
 
   // クリップボードにコピー
   (window as any).appAPI
     .writeClipboard(formatted)
-    .then(() => {
-      console.log("Copied to clipboard:", formatted);
-    })
+    // .then(() => {
+    //   console.log("Copied to clipboard:", formatted);
+    // })
     .catch((err: Error) => {
       console.error("Failed to copy to clipboard:", err);
     });
