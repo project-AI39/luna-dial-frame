@@ -2,6 +2,7 @@
   "name": "luna-dial-frame",
   "productName": "luna-dial-frame",
   "version": "0.1.0",
+  "description": "A modern Electron application with time display and history features",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
